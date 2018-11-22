@@ -109,7 +109,32 @@ class ExampleSpec extends FunSpec {
 
     it("should would") {
       println(System.getProperty("user.dir"))
-      SVGParser.readFile("ver_simple.svg")
+      val node = SVGParser.readFile("ver_simple.svg")
+      val iterator = SVGParser.parsePathShape(node)
+
+      var coords: Array[Float] = new Array[Float](6)
+      while (!iterator.isDone) {
+
+        """
+          |>> (26.458332,196.9875)
+          |>> (22.489582,193.41562)
+          |>> (26.458332,189.84375)
+          |>> (18.520832,189.84375)
+          |>> (22.489582,193.41562)
+          |>> (18.520832,196.9875)
+        """.stripMargin
+
+
+
+        iterator.currentSegment(coords)
+        println(s">> ${(coords(0), coords(1))}")
+        iterator.next()
+
+        "next"
+      }
+    }
+    it("will or willn't") {
+      SVGParser.writeOut
     }
   }
 }
