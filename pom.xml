@@ -22,12 +22,53 @@
       <artifactId>scala-library</artifactId>
       <version>${scala.version}</version>
     </dependency>
+
+    <!--<dependency>-->
+      <!--<groupId>com.kitfox</groupId>-->
+      <!--<artifactId>kitfox-svg-salamander</artifactId>-->
+      <!--<version>1.0.8</version>-->
+    <!--</dependency>-->
+
+    <!--<dependency>-->
+      <!--<groupId>org.apache.xmlgraphics</groupId>-->
+      <!--<artifactId>batik-all</artifactId>-->
+      <!--<version>1.9.1</version>-->
+      <!--<type>pom</type>-->
+    <!--</dependency>-->
+
+    <!-- https://mvnrepository.com/artifact/javax.vecmath/vecmath -->
+    <dependency>
+      <groupId>javax.vecmath</groupId>
+      <artifactId>vecmath</artifactId>
+      <version>1.5.2</version>
+      <!--<scope>runtime</scope>-->
+    </dependency>
     <dependency>
       <groupId>org.apache.xmlgraphics</groupId>
-      <artifactId>batik-all</artifactId>
-      <version>1.9.1</version>
-      <type>pom</type>
+      <artifactId>batik-svg-dom</artifactId>
+      <version>1.8</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.xmlgraphics</groupId>
+      <artifactId>batik-svggen</artifactId>
+      <version>1.8</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.xmlgraphics</groupId>
+      <artifactId>batik-codec</artifactId>
+      <version>1.8</version>
+    </dependency>
+
+    <!--<dependency>-->
+      <!--<groupId>com.twelvemonkeys.imageio</groupId>-->
+      <!--<artifactId>imageio-batik</artifactId> &lt;!&ndash; svg &ndash;&gt;-->
+      <!--<version>3.2.1</version>-->
+    <!--</dependency>-->
+    <!--<dependency>-->
+      <!--<groupId>batik</groupId>-->
+      <!--<artifactId>batik-transcoder</artifactId>-->
+      <!--<version>1.6-1</version>-->
+    <!--</dependency>-->
 
 
     <!-- Test -->

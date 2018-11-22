@@ -25,6 +25,7 @@ http://www.scalatest.org/
 One way to use ScalaTest is to help make JUnit or TestNG tests more
 clear and concise. Here's an example:
 */
+import net.crinklejoint.SVGParser
 import scala.collection._
 import org.scalatest.Assertions
 import org.junit.Test
@@ -103,6 +104,12 @@ class ExampleSpec extends FunSpec {
       intercept[RuntimeException] {
         emptyStack.pop()
       }
+    }
+
+
+    it("should would") {
+      println(System.getProperty("user.dir"))
+      SVGParser.readFile("ver_simple.svg")
     }
   }
 }
