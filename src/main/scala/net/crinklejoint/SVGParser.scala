@@ -70,7 +70,6 @@ object SVGParser {
     shape.getPathIterator(affineTransform)
   }
 
-
   def buildDocument(dAttribute: String)=  {
     val impl = SVGDOMImplementation.getDOMImplementation
     val svgNS = SVGDOMImplementation.SVG_NAMESPACE_URI
@@ -121,84 +120,4 @@ object SVGParser {
 
     transformer.transform(source, result)
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-//  def pointsToPath(points: Seq[Float]) = {
-//    val pathProducer = new AWTPathProducer
-//    val pathParser = new PathParser
-//    pathParser.setPathHandler(pathProducer)
-////    pathParser.parse(svgPathShape)
-//    val shape = pathProducer.getShape
-//    val pathIterator = shape.getPathIterator(null)
-//    pathIterator
-//  }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  def paint(g2d: Graphics2D, paths: Seq[GeneralPath]): Unit = {
-    g2d.setPaint(Color.red)
-    val path = new GeneralPath
-    val iterator = parsePathShape("m 27.78125,107.69063 -3.96875,4.7625 -3.96875,-4.7625 0,8.33437 3.96875,-4.7625 3.96875,4.7625")
-    path.append(iterator, false)
-//
-//    val p2 = new GeneralPath
-//    val i2 = parsePathShape("m 10.583333,204.13125 h 14.552083 v 9.525 l -6.614583,-4.7625 h -7.9375 z")
-//    p2.append(i2, false)
-
-    for (path <- paths) g2d.draw(path)
-  }
-
-  @throws[IOException]
-  def createSvgGenerator(document: dom.Document, paths: Seq[GeneralPath]): Unit = {
-    // Get a DOMImplementation.
-//    val domImpl = GenericDOMImplementation.getDOMImplementation
-    // Create an instance of org.w3c.dom.Document.
-//    val svgNS = "file:///home/owenpaulmeyer/src/nnw_gds/ver_simple.svg"
-//    val document = domImpl.createDocument(svgNS, "svg", null)
-    // Create an instance of the SVG Generator.
-    val svgGenerator: SVGGraphics2D = new SVGGraphics2D(document)
-    // Ask the test to render into the SVG Graphics2D implementation.
-    paint(svgGenerator, paths)
-    svgGenerator
-
-    // Finally, stream out SVG to the standard output using
-    // UTF-8 encoding.
-//    val useCSS = false
-    // we want to use CSS style attributes
-//    val file = new File("dramp.svg")
-//    val out = new OutputStreamWriter(new FileOutputStream(file), "UTF-8")
-//    svgGenerator.stream(out, useCSS)
-  }
-  def writeOut(svgGenerator: SVGGraphics2D, file: File): Unit = {
-    val useCSS = false
-    val out = new OutputStreamWriter(new FileOutputStream(file), "UTF-8")
-    svgGenerator.stream(out, useCSS)
-  }
-
-
 }
