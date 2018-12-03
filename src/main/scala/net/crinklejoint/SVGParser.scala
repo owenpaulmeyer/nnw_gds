@@ -1,17 +1,15 @@
 package net.crinklejoint
 
-import java.awt.{Color, Graphics2D}
 import java.awt.geom.{GeneralPath, PathIterator}
-import java.io.{File, FileOutputStream, IOException, OutputStreamWriter}
+import java.io.File
 import javax.xml.parsers.{DocumentBuilder, DocumentBuilderFactory}
 import javax.xml.xpath.{XPathConstants, XPathFactory}
 import org.apache.batik.anim.dom.SVGDOMImplementation
 import org.apache.batik.dom.GenericDOMImplementation
-import org.apache.batik.parser.{FloatArrayProducer, PointsParser}
+import org.apache.batik.parser.{AWTPathProducer, PathParser}
 import org.apache.batik.svggen.SVGGraphics2D
 import org.w3c.dom
 import org.w3c.dom.{Node, NodeList}
-import org.apache.batik.parser.{AWTPathProducer, PathParser}
 import scala.collection.Seq
 
 
@@ -42,6 +40,20 @@ object SVGParser {
     val affineTransform = null
     val pathIterator = shape.getPathIterator(affineTransform)
     pathIterator
+  }
+
+  def generateCoordinates(pathIterator: PathIterator): List[(Float, Float)] = {
+    val buffer = scala.collection.mutable.ArrayBuffer.empty[(Float, Float)]
+    var coords: Array[Float] = new Array[Float](2)
+    pathIterator.next() // expunge the extra coordinate at the start
+    while (!pathIterator.isDone) {
+      pathIterator.currentSegment(coords)
+      buffer.append((coords(0), coords(1)))
+      pathIterator.next()
+      "next"
+    }
+
+    buffer.toList
   }
 
   def createSVGPath(paths: Seq[PathIterator]) = {

@@ -1,14 +1,9 @@
 package svg
 
-import java.awt.geom.{GeneralPath, PathIterator}
-import java.io.File
 import net.crinklejoint.SVGParser
-import net.crinklejoint.SVGParser.parsePathShape
-import org.apache.batik.dom.GenericDOMImplementation
-import org.apache.batik.svggen.SVGGraphics2D
+import net.crinklejoint.SVGParser.{parsePathShape, _}
 import org.scalatest.{FunSpec, Matchers}
 import scala.collection._
-import SVGParser._
 
 class SVGParserSpec extends FunSpec with Matchers {
 
@@ -18,7 +13,7 @@ class SVGParserSpec extends FunSpec with Matchers {
         val path = "src/test/resources/inkscape_sample.svg"
         val dom = readFile(path)
         val expectedPathString = "m 26.458333,196.9875 -3.96875,-3.57188 3.96875,-3.57187 h -7.9375 l 2.645834,3.57188 -2.645834,3.57187"
-       parseNode(dom) shouldBe expectedPathString
+        parseNode(dom) shouldBe expectedPathString
       }
     }
     describe("parsePathShape createSVGPath") {
@@ -71,5 +66,22 @@ class SVGParserSpec extends FunSpec with Matchers {
         createSVGPath(Seq(pI1, pI2)) shouldBe expectedPath
       }
     }
+
+    it("should would") {
+      val node = readFile("src/test/resources/output.svg")
+      val pathString = parseNode(node)
+      val pathIterator = parsePathShape(pathString)
+
+      val expectedCoordinates = List(
+        (26.4583f,196.9875f),
+        (22.4896f,193.4156f),
+        (26.4583f,189.8438f),
+        (18.5208f,189.8438f),
+        (22.4896f,193.4156f),
+        (18.5208f,196.9875f)
+      )
+      generateCoordinates(pathIterator) shouldBe expectedCoordinates
+    }
+
   }
 }
