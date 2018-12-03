@@ -74,6 +74,7 @@ class SVGParserSpec extends FunSpec with Matchers {
 
       val expectedCoordinates = List(
         (26.4583f,196.9875f),
+        (26.4583f,196.9875f),
         (22.4896f,193.4156f),
         (26.4583f,189.8438f),
         (18.5208f,189.8438f),
