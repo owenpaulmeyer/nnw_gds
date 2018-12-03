@@ -45,7 +45,6 @@ object SVGParser {
   def generateCoordinates(pathIterator: PathIterator): List[(Float, Float)] = {
     val buffer = scala.collection.mutable.ArrayBuffer.empty[(Float, Float)]
     var coords: Array[Float] = new Array[Float](2)
-//    pathIterator.next() // expunge the extra coordinate at the start
     while (!pathIterator.isDone) {
       pathIterator.currentSegment(coords)
       buffer.append((coords(0), coords(1)))
