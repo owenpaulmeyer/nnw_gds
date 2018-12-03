@@ -44,6 +44,18 @@ object SVGParser {
     pathIterator
   }
 
+  def createSVGPath(paths: Seq[PathIterator]) = {
+    val domImpl = GenericDOMImplementation.getDOMImplementation
+    val svgNS = null
+    val document = domImpl.createDocument(svgNS, "assvg", null)
+
+    val generalPath = new GeneralPath
+    for (path <- paths) generalPath.append(path, false)
+
+    val svgGenerator = new SVGGraphics2D(document)
+    svgGenerator.getShapeConverter.toSVG(generalPath).getAttribute("d")
+  }
+
   def parsePoints(points: Seq[(Float, Float)]) = {
     val start = points.head
     val path  = points.tail
@@ -58,17 +70,6 @@ object SVGParser {
     shape.getPathIterator(affineTransform)
   }
 
-  def createSVGPath(paths: Seq[PathIterator]) = {
-    val domImpl = GenericDOMImplementation.getDOMImplementation
-    val svgNS = null
-    val document = domImpl.createDocument(svgNS, "assvg", null)
-
-    val generalPath = new GeneralPath
-    for (path <- paths) generalPath.append(path, false)
-
-    val svgGenerator = new SVGGraphics2D(document)
-    svgGenerator.getShapeConverter.toSVG(generalPath).getAttribute("d")
-  }
 
   def buildDocument(dAttribute: String)=  {
     val impl = SVGDOMImplementation.getDOMImplementation

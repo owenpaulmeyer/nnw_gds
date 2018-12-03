@@ -1,22 +1,40 @@
-package samples
-
+package svg
 
 import java.awt.geom.{GeneralPath, PathIterator}
 import java.io.File
 import net.crinklejoint.SVGParser
 import net.crinklejoint.SVGParser.parsePathShape
-import org.apache.batik.anim.dom.SVGDOMImplementation
 import org.apache.batik.dom.GenericDOMImplementation
-import org.apache.batik.parser.{AWTPathProducer, FloatArrayProducer, PointsParser}
 import org.apache.batik.svggen.SVGGraphics2D
 import org.scalatest.{FunSpec, Matchers}
-import org.w3c.dom.Node
 import scala.collection._
+import SVGParser._
 
 class SVGParserSpec extends FunSpec with Matchers {
 
   describe("svg file io") {
+    describe("readFile and parseNode") {
+      it("should input a file path and produce a dom which parseNode should convert into a path string") {
+//        println(s">>>> ${System.getProperty("user.dir")}")
 
+        val path = "src/test/resources/inkscape_sample.svg"
+        val dom = readFile(path)
+        val expectedPathString = "m 26.458333,196.9875 -3.96875,-3.57188 3.96875,-3.57187 h -7.9375 l 2.645834,3.57188 -2.645834,3.57187"
+       parseNode(dom) shouldBe expectedPathString
+      }
+    }
+    describe("parsePathShape createSVGPath") {
+      it("should produce a pathIterator from an svg path string") {
+        val pathString1 = "m 26.458333,196.9875 -3.96875,-3.57188 3.96875,-3.57187 h -7.9375 l 2.645834,3.57188 -2.645834,3.57187"
+        val pathString2 = "m 10.583333,204.13125 h 14.552083 v 9.525 l -6.614583,-4.7625 h -7.9375 z"
+
+        val pI1 = parsePathShape(pathString1)
+        val pI2 = parsePathShape(pathString2)
+
+        val expectedPathString = "M26.4583 196.9875 L22.4896 193.4156 L26.4583 189.8438 L18.5208 189.8438 L21.1667 193.4156 L18.5208 196.9875 M10.5833 204.1313 L25.1354 204.1313 L25.1354 213.6562 L18.5208 208.8938 L10.5833 208.8938 Z"
+        createSVGPath(Seq(pI1, pI2)) shouldBe expectedPathString
+      }
+    }
     it("should read an svg into a sequence of coordinates") {
       val document = SVGParser.readFile("ver_simple.svg")
       val node = SVGParser.parseNode(document)
