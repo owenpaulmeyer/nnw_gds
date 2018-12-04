@@ -19,26 +19,48 @@ class SVGParserSpec extends FunSpec with Matchers {
     }
     describe("parsePathShape createSVGPath") {
       it("should produce a pathIterator from an svg path string") {
-        val pathString1 = "m 26.458333,196.9875 -3.96875,-3.57188 3.96875,-3.57187 h -7.9375 l 2.645834,3.57188 -2.645834,3.57187"
-        val pathString2 = "m 10.583333,204.13125 h 14.552083 v 9.525 l -6.614583,-4.7625 h -7.9375 z"
+        val pathStrings = List(
+          "m 26.458333,196.9875 -3.96875,-3.57188 3.96875,-3.57187 h -7.9375 l 2.645834,3.57188 -2.645834,3.57187",
+          "m 10.583333,204.13125 h 14.552083 v 9.525 l -6.614583,-4.7625 h -7.9375 z"
+        )
 
-        val pathIterators = parsePathShape(List(pathString1, pathString2))
+        val pathIterators = parsePathShape(pathStrings)
 
         val expectedPathString = "M26.4583 196.9875 L22.4896 193.4156 L26.4583 189.8438 L18.5208 189.8438 L21.1667 193.4156 L18.5208 196.9875 M10.5833 204.1313 L25.1354 204.1313 L25.1354 213.6562 L18.5208 208.8938 L10.5833 208.8938 Z"
         createSVGPath(pathIterators) shouldBe expectedPathString
+      }
+      ignore("should close shapes") {
+        val pathData = "m 10.583333,204.13125 h 14.552083 v 9.525 l -6.614583,-4.7625 h -7.9375 z"
+        val pathIterators = parsePathShape(List(pathData))
+        val pathIteratorsCopy = parsePathShape(List(pathData))
+        val coordinates = generateCoordinates(pathIterators)
+        val pathIteratorsOutp = parsePoints(coordinates)
+        val alsoCoordinates = generateCoordinates(pathIteratorsOutp)
+        val comparePath = createSVGPath(pathIteratorsOutp)
+
+
+        val path = createSVGPath(pathIteratorsCopy)
+        path
+        "M10.5833 204.1313 L25.1354 204.1313 L25.1354 213.6562 L18.5208 208.8938 L10.5833 208.8938 L10.5833 208.8938"
+        "M10.5833 204.1313 L25.1354 204.1313 L25.1354 213.6562 L18.5208 208.8938 L10.5833 208.8938 Z"
+
+        val a = parsePathShape(List(pathData))
+        val b = parsePoints(coordinates)
+        val ls = List(a,b)
+        ls
       }
     }
 
     describe("parsePoints") {
       it("should take a sequence of (float, float) and return a pathIterator") {
         val points = List(
-          (26.458332f, 196.9875f),
-          (26.458332f, 196.9875f),
-          (22.489582f, 193.41562f),
-          (26.458332f, 189.84375f),
-          (18.520832f, 189.84375f),
-          (22.489582f, 193.41562f),
-          (18.520832f, 196.9875f)
+          Segment(26.458332f, 196.9875f,  0),
+          Segment(26.458332f, 196.9875f,  1),
+          Segment(22.489582f, 193.41562f, 1),
+          Segment(26.458332f, 189.84375f, 1),
+          Segment(18.520832f, 189.84375f, 1),
+          Segment(22.489582f, 193.41562f, 1),
+          Segment(18.520832f, 196.9875f,  1)
         )
 
         val pathIterators = SVGParser.parsePoints(List(points))
@@ -50,6 +72,7 @@ class SVGParserSpec extends FunSpec with Matchers {
     describe("buildDocument writeToFile") {
       it("should construct a dom for export to file") {
         val pathData = "M26.4583 196.9875 L26.4583 196.9875 L22.4896 193.4156 L26.4583 189.8438 L18.5208 189.8438 L22.4896 193.4156 L18.5208 196.9875"
+
         val dom = buildDocument(pathData)
         writeToFile(dom, "src/test/resources/output.svg")
       }
@@ -73,13 +96,13 @@ class SVGParserSpec extends FunSpec with Matchers {
       val pathIterators = parsePathShape(pathStrings)
 
       val expectedCoordinates = List(
-        (26.4583f,196.9875f),
-        (26.4583f,196.9875f),
-        (22.4896f,193.4156f),
-        (26.4583f,189.8438f),
-        (18.5208f,189.8438f),
-        (22.4896f,193.4156f),
-        (18.5208f,196.9875f)
+        Segment(26.4583f,196.9875f, 0),
+        Segment(26.4583f,196.9875f, 1),
+        Segment(22.4896f,193.4156f, 1),
+        Segment(26.4583f,189.8438f, 1),
+        Segment(18.5208f,189.8438f, 1),
+        Segment(22.4896f,193.4156f, 1),
+        Segment(18.5208f,196.9875f, 1)
       )
       generateCoordinates(pathIterators) shouldBe List(expectedCoordinates)
     }

@@ -10,7 +10,6 @@ import org.apache.batik.parser.{AWTPathProducer, PathParser}
 import org.apache.batik.svggen.SVGGraphics2D
 import org.w3c.dom
 import org.w3c.dom.{Node, NodeList}
-import scala.collection.Seq
 
 
 object SVGParser {
@@ -45,17 +44,49 @@ object SVGParser {
     }
   }
 
-  def generateCoordinates(pathIterators: List[PathIterator]): List[List[(Float, Float)]] = {
+  case class Segment(a: Float, b: Float, c: Int)
+  val SEG_CLOSE  = 4
+  val SEG_MOVETO = 0
+  val SEG_LINETO = 1
+
+  def generateCoordinates(pathIterators: List[PathIterator]): List[List[Segment]] = {
     pathIterators map { pathIterator =>
-      val buffer = scala.collection.mutable.ArrayBuffer.empty[(Float, Float)]
-      var coords: Array[Float] = new Array[Float](2)
+      val buffer = scala.collection.mutable.ArrayBuffer.empty[Segment]
+      var coords: Array[Float] = new Array[Float](6)
       while (!pathIterator.isDone) {
-        pathIterator.currentSegment(coords)
-        buffer.append((coords(0), coords(1)))
+        val t = pathIterator.currentSegment(coords)
+        buffer.append(Segment(coords(0), coords(1), t))
         pathIterator.next()
         "next"
       }
       buffer.toList
+    }
+  }
+
+  def parsePoints(coordinates: List[List[Segment]]): List[PathIterator] = {
+    coordinates map { segments =>
+      val start = segments.head
+      val path = segments.tail
+
+      val pathProducer = new AWTPathProducer
+      pathProducer.startPath()
+
+      def produceSegment(seg: Segment) {
+        seg match {
+          case Segment(a, b, SEG_CLOSE)  => pathProducer.closePath()
+          case Segment(a, b, SEG_MOVETO) => pathProducer.movetoAbs(a, b)
+          case Segment(a, b, SEG_LINETO) => pathProducer.linetoAbs(a, b)
+        }
+      }
+
+      produceSegment(start)
+      for (point <- path) produceSegment(point)
+
+      pathProducer.endPath
+
+      val shape = pathProducer.getShape
+      val affineTransform = null
+      shape.getPathIterator(affineTransform)
     }
   }
 
@@ -69,22 +100,6 @@ object SVGParser {
 
     val svgGenerator = new SVGGraphics2D(document)
     svgGenerator.getShapeConverter.toSVG(generalPath).getAttribute("d")
-  }
-
-  def parsePoints(coordinates: List[List[(Float, Float)]]) = {
-    coordinates map { points =>
-      val start = points.head
-      val path = points.tail
-
-      val pathProducer = new AWTPathProducer
-      pathProducer.startPath()
-      (pathProducer.movetoAbs _).tupled(start)
-      for (point <- path) (pathProducer.linetoAbs _).tupled(point)
-      pathProducer.endPath
-      val shape = pathProducer.getShape
-      val affineTransform = null
-      shape.getPathIterator(affineTransform)
-    }
   }
 
   def buildDocument(dAttribute: String)=  {
