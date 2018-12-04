@@ -14,48 +14,52 @@ import scala.collection.Seq
 
 
 object SVGParser {
-  def readFile(path: String): dom.Document = {
+  def readFile(filePath: String): dom.Document = {
     val factory: DocumentBuilderFactory = DocumentBuilderFactory.newInstance
     val builder: DocumentBuilder = factory.newDocumentBuilder
-    val document: dom.Document = builder.parse(path)
+    val document: dom.Document = builder.parse(filePath)
     document
   }
 
-  def parseNode(document: dom.Document) = {
+  def parseNode(document: dom.Document): List[String] = {
     val xpathExpression = "//path/@d"
     val xpf = XPathFactory.newInstance
     val xpath = xpf.newXPath
     val expression = xpath.compile(xpathExpression)
     val svgPaths = expression.evaluate(document, XPathConstants.NODESET).asInstanceOf[NodeList]
-    val node = svgPaths.item(0).getNodeValue
-    node
+    val nodeCount = svgPaths.getLength
+    val ls = List.range(0, nodeCount)
+    ls map { idx => svgPaths.item(idx).getNodeValue }
   }
 
-  def parsePathShape(svgPathShape: String): PathIterator = try {
-    val pathProducer = new AWTPathProducer
-    val pathParser = new PathParser
-    pathParser.setPathHandler(pathProducer)
-    pathParser.parse(svgPathShape)
-    val shape = pathProducer.getShape
-    val affineTransform = null
-    val pathIterator = shape.getPathIterator(affineTransform)
-    pathIterator
-  }
-
-  def generateCoordinates(pathIterator: PathIterator): List[(Float, Float)] = {
-    val buffer = scala.collection.mutable.ArrayBuffer.empty[(Float, Float)]
-    var coords: Array[Float] = new Array[Float](2)
-    while (!pathIterator.isDone) {
-      pathIterator.currentSegment(coords)
-      buffer.append((coords(0), coords(1)))
-      pathIterator.next()
-      "next"
+  def parsePathShape(svgPathShapes: List[String]): List[PathIterator] = try {
+    svgPathShapes map { svgPathShape =>
+      val pathProducer = new AWTPathProducer
+      val pathParser = new PathParser
+      pathParser.setPathHandler(pathProducer)
+      pathParser.parse(svgPathShape)
+      val shape = pathProducer.getShape
+      val affineTransform = null
+      val pathIterator = shape.getPathIterator(affineTransform)
+      pathIterator
     }
-
-    buffer.toList
   }
 
-  def createSVGPath(paths: Seq[PathIterator]) = {
+  def generateCoordinates(pathIterators: List[PathIterator]): List[List[(Float, Float)]] = {
+    pathIterators map { pathIterator =>
+      val buffer = scala.collection.mutable.ArrayBuffer.empty[(Float, Float)]
+      var coords: Array[Float] = new Array[Float](2)
+      while (!pathIterator.isDone) {
+        pathIterator.currentSegment(coords)
+        buffer.append((coords(0), coords(1)))
+        pathIterator.next()
+        "next"
+      }
+      buffer.toList
+    }
+  }
+
+  def createSVGPath(paths: List[PathIterator]) = {
     val domImpl = GenericDOMImplementation.getDOMImplementation
     val svgNS = null
     val document = domImpl.createDocument(svgNS, "assvg", null)
@@ -67,18 +71,20 @@ object SVGParser {
     svgGenerator.getShapeConverter.toSVG(generalPath).getAttribute("d")
   }
 
-  def parsePoints(points: Seq[(Float, Float)]) = {
-    val start = points.head
-    val path  = points.tail
+  def parsePoints(coordinates: List[List[(Float, Float)]]) = {
+    coordinates map { points =>
+      val start = points.head
+      val path = points.tail
 
-    val pathProducer = new AWTPathProducer
-    pathProducer.startPath()
-    (pathProducer.movetoAbs _).tupled(start)
-    for (point <- path) (pathProducer.linetoAbs _).tupled(point)
-    pathProducer.endPath
-    val shape = pathProducer.getShape
-    val affineTransform = null
-    shape.getPathIterator(affineTransform)
+      val pathProducer = new AWTPathProducer
+      pathProducer.startPath()
+      (pathProducer.movetoAbs _).tupled(start)
+      for (point <- path) (pathProducer.linetoAbs _).tupled(point)
+      pathProducer.endPath
+      val shape = pathProducer.getShape
+      val affineTransform = null
+      shape.getPathIterator(affineTransform)
+    }
   }
 
   def buildDocument(dAttribute: String)=  {
