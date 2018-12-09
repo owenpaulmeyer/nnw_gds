@@ -12,7 +12,7 @@ import org.w3c.dom
 import org.w3c.dom.{Node, NodeList}
 
 
-object SVGParser {
+object SVGParser extends Graph with Protocol {
   def readFile(filePath: String): dom.Document = {
     val factory: DocumentBuilderFactory = DocumentBuilderFactory.newInstance
     val builder: DocumentBuilder = factory.newDocumentBuilder
@@ -44,18 +44,13 @@ object SVGParser {
     }
   }
 
-  case class Segment(a: Float, b: Float, c: Int)
-  val SEG_CLOSE  = 4
-  val SEG_MOVETO = 0
-  val SEG_LINETO = 1
-
   def generateCoordinates(pathIterators: List[PathIterator]): List[List[Segment]] = {
     pathIterators map { pathIterator =>
       val buffer = scala.collection.mutable.ArrayBuffer.empty[Segment]
       var coords: Array[Float] = new Array[Float](6)
       while (!pathIterator.isDone) {
         val t = pathIterator.currentSegment(coords)
-        buffer.append(Segment(coords(0), coords(1), t))
+        buffer.append(Segment(Point(coords(0), coords(1)), t))
         pathIterator.next()
         "next"
       }
@@ -73,9 +68,9 @@ object SVGParser {
 
       def produceSegment(seg: Segment) {
         seg match {
-          case Segment(a, b, SEG_CLOSE)  => pathProducer.closePath()
-          case Segment(a, b, SEG_MOVETO) => pathProducer.movetoAbs(a, b)
-          case Segment(a, b, SEG_LINETO) => pathProducer.linetoAbs(a, b)
+          case Segment(Point(a, b), SEG_CLOSE)  => pathProducer.closePath()
+          case Segment(Point(a, b), SEG_MOVETO) => pathProducer.movetoAbs(a, b)
+          case Segment(Point(a, b), SEG_LINETO) => pathProducer.linetoAbs(a, b)
         }
       }
 

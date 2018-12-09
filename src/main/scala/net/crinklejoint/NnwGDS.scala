@@ -3,13 +3,12 @@ package net.crinklejoint
 /**
  * @author ${user.name}
  */
-object App {
+object NnwGDS {
   
-  def foo(x : Array[String]) = x.foldLeft("")((a,b) => a + b)
-  
+
   def main(args : Array[String]) {
     println( "Hello World!" )
-    println("concat arguments = " + foo(args))
+    val z: Float = 2f
   }
 
 }

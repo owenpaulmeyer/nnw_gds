@@ -1,6 +1,5 @@
-package svg
+package net.crinklejoint
 
-import net.crinklejoint.SVGParser
 import net.crinklejoint.SVGParser.{parsePathShape, _}
 import org.scalatest.{FunSpec, Matchers}
 
@@ -54,13 +53,13 @@ class SVGParserSpec extends FunSpec with Matchers {
     describe("parsePoints") {
       it("should take a sequence of (float, float) and return a pathIterator") {
         val points = List(
-          Segment(26.458332f, 196.9875f,  0),
-          Segment(26.458332f, 196.9875f,  1),
-          Segment(22.489582f, 193.41562f, 1),
-          Segment(26.458332f, 189.84375f, 1),
-          Segment(18.520832f, 189.84375f, 1),
-          Segment(22.489582f, 193.41562f, 1),
-          Segment(18.520832f, 196.9875f,  1)
+          Segment(Point(26.458332f, 196.9875f),  0),
+          Segment(Point(26.458332f, 196.9875f),  1),
+          Segment(Point(22.489582f, 193.41562f), 1),
+          Segment(Point(26.458332f, 189.84375f), 1),
+          Segment(Point(18.520832f, 189.84375f), 1),
+          Segment(Point(22.489582f, 193.41562f), 1),
+          Segment(Point(18.520832f, 196.9875f),  1)
         )
 
         val pathIterators = SVGParser.parsePoints(List(points))
@@ -96,21 +95,21 @@ class SVGParserSpec extends FunSpec with Matchers {
       val pathIterators = parsePathShape(pathStrings)
 
       val expectedCoordinates = List(
-        Segment(26.4583f,196.9875f, 0),
-        Segment(26.4583f,196.9875f, 1),
-        Segment(22.4896f,193.4156f, 1),
-        Segment(26.4583f,189.8438f, 1),
-        Segment(18.5208f,189.8438f, 1),
-        Segment(22.4896f,193.4156f, 1),
-        Segment(18.5208f,196.9875f, 1)
+        Segment(Point(26.4583f,196.9875f), 0),
+        Segment(Point(26.4583f,196.9875f), 1),
+        Segment(Point(22.4896f,193.4156f), 1),
+        Segment(Point(26.4583f,189.8438f), 1),
+        Segment(Point(18.5208f,189.8438f), 1),
+        Segment(Point(22.4896f,193.4156f), 1),
+        Segment(Point(18.5208f,196.9875f), 1)
       )
       generateCoordinates(pathIterators) shouldBe List(expectedCoordinates)
     }
 
     describe("back and forth") {
       it("should read a file into a list of lists of floats and back into a file") {
-//        val path = "src/test/resources/inkscape_sample.svg"
-        val path = "src/test/resources/hex_grid.svg"
+        val path = "src/test/resources/inkscape_sample.svg"
+//        val path = "src/test/resources/hex_grid.svg"
         val domInp = readFile(path)
         val pathInps = parseNode(domInp)
         val pathIteratorInps = parsePathShape(pathInps)
