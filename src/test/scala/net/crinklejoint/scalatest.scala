@@ -108,12 +108,16 @@ class SVGParserSpec extends FunSpec with Matchers {
 
     describe("back and forth") {
       it("should read a file into a list of lists of floats and back into a file") {
-        val path = "src/test/resources/inkscape_sample.svg"
+        val path = "src/test/resources/sigmoid.svg"
+//        val path = "src/test/resources/inkscape_sample.svg"
 //        val path = "src/test/resources/hex_grid.svg"
         val domInp = readFile(path)
         val pathInps = parseNode(domInp)
         val pathIteratorInps = parsePathShape(pathInps)
         val coordinates = generateCoordinates(pathIteratorInps)
+        println(s">>>")
+        coordinates map (cs => println(s"$cs"))
+
         val pathIteratorOutps = SVGParser.parsePoints(coordinates)
         val pathOutps = createSVGPath(pathIteratorOutps)
         val domOutps = buildDocument(pathOutps)

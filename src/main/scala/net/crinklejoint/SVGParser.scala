@@ -12,7 +12,7 @@ import org.w3c.dom
 import org.w3c.dom.{Node, NodeList}
 
 
-object SVGParser extends Graph with Protocol {
+object SVGParser extends GraphD with Protocol {
   def readFile(filePath: String): dom.Document = {
     val factory: DocumentBuilderFactory = DocumentBuilderFactory.newInstance
     val builder: DocumentBuilder = factory.newDocumentBuilder
@@ -42,7 +42,7 @@ object SVGParser extends Graph with Protocol {
       val pathIterator = shape.getPathIterator(affineTransform)
       pathIterator
     }
-  }
+  } catch { case e: Throwable => println(s"stack trace: ${e.getStackTrace}"); throw e }
 
   def generateCoordinates(pathIterators: List[PathIterator]): List[List[Segment]] = {
     pathIterators map { pathIterator =>
@@ -71,6 +71,7 @@ object SVGParser extends Graph with Protocol {
           case Segment(Point(a, b), SEG_CLOSE)  => pathProducer.closePath()
           case Segment(Point(a, b), SEG_MOVETO) => pathProducer.movetoAbs(a, b)
           case Segment(Point(a, b), SEG_LINETO) => pathProducer.linetoAbs(a, b)
+          case _ => throw new RuntimeException("unexpected Segment at 'produceSegment'")
         }
       }
 
