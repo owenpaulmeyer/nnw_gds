@@ -91,6 +91,31 @@ trait GraphD extends Protocol {
     List.empty
   }
 
+
+  def joint(ls: List[(Point, Point)], close: Point): List[List[Segment]] = ls match {
+    case (a1, null) :: (a2, b2) :: Nil              =>
+      List(Segment(a1, 0) :: Segment(a2, 1) :: Nil)
+
+    case (a1, null) :: (a2, b2) :: tail if a1 == b2 =>
+      val remaining: List[List[Segment]] = joint(tail, close)
+      val here: List[Segment] = Segment(a1, 0) :: Segment(a2, 1) :: remaining.head
+      here :: remaining.tail
+
+    case (a1, b1)   :: (a2, b2) :: tail if a1 == b2 =>
+      val remaining: List[List[Segment]] = joint(tail, close)
+      val here: List[Segment] = Segment(a1, 1) :: Segment(a2, 1) :: remaining.head
+      here :: remaining.tail
+
+    case (a1, b1) :: (a2, b2) :: tail               =>
+      val remaining: List[List[Segment]] = joint(tail, a2)
+      val here: List[Segment] =  Segment(a2, 0) :: remaining.head
+      List(Segment(a1, 1)) :: (here :: remaining.tail)
+
+    case (a, b) :: Nil                =>
+      List(Segment(a, 1) :: Segment(b, 1) :: Segment(close, 1) :: Nil)
+
+  }
+
   import java.io.StringWriter
 // use helper classes to define how vertices should be rendered,// use helper classes to define how vertices should be rendered,
 
