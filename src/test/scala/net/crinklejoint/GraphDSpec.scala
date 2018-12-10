@@ -83,7 +83,68 @@ class GraphDSpec extends FunSpec with Matchers with Protocol with GraphD {
         Segment(Point(52.916664f,139.8375f),1),
         Segment(Point(52.916664f,139.8375f),4)
       )
-      val coordinates: List[List[Segment]] = List(path1, path2)
+      List(
+        List(
+          Segment(Point(105.83333f,77.925f),0),
+          Segment(Point(79.375f,111.2625f),1),
+          Segment(Point(52.916664f,77.925f),1)),
+        List(
+          Segment(Point(105.83333f,139.8375f),0),
+          Segment(Point(52.916664f,139.8375f),1),
+          Segment(Point(79.375f,111.2625f),1),
+          Segment(Point(105.83333f,139.8375f),1)))
+
+      val result = List(
+        (Point(105.83333f,   77.925f),  null),
+        (Point( 79.375f,    111.2625f), Point(105.83333f, 77.925f)),
+        (Point( 52.916664f,  77.925f),
+                                        Point(79.375f,   111.2625f)),
+        (Point(105.83333f,  139.8375f), Point(79.375f,   111.2625f)),
+        (Point( 52.916664f, 139.8375f), Point(79.375f,   111.2625f))
+      )
+      def joint(ls: List[(Point, Point)], close: Point): List[List[Segment]] = ls match {
+        case (a1, null) :: (a2, b2) :: Nil              =>
+          List(Segment(a1, 0) :: Segment(a2, 1) :: Nil)
+
+        case (a1, null) :: (a2, b2) :: tail if a1 == b2 =>
+          val remaining: List[List[Segment]] = joint(tail, close)
+          val here: List[Segment] = Segment(a1, 0) :: Segment(a2, 1) :: remaining.head
+          here :: remaining.tail
+
+        case (a1, b1)   :: (a2, b2) :: tail if a1 == b2 =>
+          val remaining: List[List[Segment]] = joint(tail, close)
+          val here: List[Segment] = Segment(a1, 1) :: Segment(a2, 1) :: remaining.head
+          here :: remaining.tail
+
+        case (a1, b1) :: (a2, b2) :: tail               =>
+          val remaining: List[List[Segment]] = joint(tail, a2)
+          val here: List[Segment] =  Segment(a2, 0) :: remaining.head
+          List(Segment(a1, 1)) :: (here :: remaining.tail)
+
+        case (a, b) :: Nil                =>
+          List(Segment(a, 1) :: Segment(b, 1) :: Segment(close, 1) :: Nil)
+
+      }
+      val jointed = joint(result, null)
+
+      println(s"jointed: $jointed")
+
+//      val coordinates: List[List[Segment]] = List(path1, path2)
+//      val graph = coordinatesToGraph(coordinates: List[List[Segment]])
+//      graphToCoordinates(graph)
+    }
+    it("more2") {
+      val path1 = List(
+        Segment(Point(52.916664f,77.925f),0),
+        Segment(Point(79.375f,111.2625f),1)
+      )
+      val ls = List(
+        (Point(52.916664f,77.925f),null),
+        (Point(79.375f,111.2625f),Point(52.916664f,77.925f))
+      )
+
+
+      val coordinates: List[List[Segment]] = List(path1)
       val graph = coordinatesToGraph(coordinates: List[List[Segment]])
       graphToCoordinates(graph)
     }

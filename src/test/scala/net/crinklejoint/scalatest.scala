@@ -106,6 +106,7 @@ class SVGParserSpec extends FunSpec with Matchers {
       generateCoordinates(pathIterators) shouldBe List(expectedCoordinates)
     }
 
+
     describe("back and forth") {
       it("should read a file into a list of lists of floats and back into a file") {
         val path = "src/test/resources/sigmoid.svg"
@@ -122,6 +123,27 @@ class SVGParserSpec extends FunSpec with Matchers {
         val pathOutps = createSVGPath(pathIteratorOutps)
         val domOutps = buildDocument(pathOutps)
         writeToFile(domOutps, "src/test/resources/outputFull.svg")
+      }
+
+
+      it("should convert several list of segments to an svg") {
+        val coordinates = List(
+          List(
+            Segment(Point(105.83333f, 77.925f), 0),
+            Segment(Point(79.375f, 111.2625f), 1),
+            Segment(Point(52.916664f, 77.925f), 1)),
+          List(
+            Segment(Point(105.83333f, 139.8375f), 0),
+            Segment(Point(52.916664f, 139.8375f), 1),
+            Segment(Point(79.375f, 111.2625f), 1),
+            Segment(Point(105.83333f, 139.8375f), 1))
+        )
+
+        val pathIteratorOutps = SVGParser.parsePoints(coordinates)
+        val pathOutps = createSVGPath(pathIteratorOutps)
+        val domOutps = buildDocument(pathOutps)
+        writeToFile(domOutps, "src/test/resources/outputX.svg"
+        )
       }
     }
   }

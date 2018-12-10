@@ -66,7 +66,7 @@ trait GraphD extends Protocol {
     val subGraphs = subVertices.iterator.toList map { case vertSet: java.util.Set[Point] => new AsSubgraph[Point, DefaultWeightedEdge](graph, vertSet) }
 
 //    for (subGraph: Graph[Point, DefaultWeightedEdge]  <- subGraphs)
-    subGraphs map { subGraph: Graph[Point, DefaultWeightedEdge] =>
+    subGraphs flatMap { subGraph: Graph[Point, DefaultWeightedEdge] =>
       val points = subGraph.vertexSet.toList
       val pathCaps = points.filter{
         point =>
@@ -84,6 +84,7 @@ trait GraphD extends Protocol {
         buffer.append((node, parent))
       }
       println(s"$buffer")
+      List()
     }
 
 
