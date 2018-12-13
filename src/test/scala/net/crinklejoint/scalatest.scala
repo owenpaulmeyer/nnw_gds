@@ -2,6 +2,7 @@ package net.crinklejoint
 
 import net.crinklejoint.SVGParser.{parsePathShape, _}
 import org.scalatest.{FunSpec, Matchers}
+import Protocol._
 
 class SVGParserSpec extends FunSpec with Matchers {
 
@@ -124,7 +125,6 @@ class SVGParserSpec extends FunSpec with Matchers {
         val domOutps = buildDocument(pathOutps)
         writeToFile(domOutps, "src/test/resources/outputFull.svg")
       }
-
 
       it("should convert several list of segments to an svg") {
         val coordinates = List(

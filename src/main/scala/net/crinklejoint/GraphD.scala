@@ -1,13 +1,16 @@
 package net.crinklejoint
 
 
+import java.util.Comparator
+import net.crinklejoint
 import org.jgrapht.Graph
 import org.jgrapht.alg.connectivity.ConnectivityInspector
-import org.jgrapht.graph.{AsSubgraph, DefaultWeightedEdge, SimpleWeightedGraph}
+import org.jgrapht.event._
+import org.jgrapht.graph.{DefaultWeightedEdge, _}
 import org.jgrapht.io.{ComponentNameProvider, DOTExporter}
 import org.jgrapht.traverse.BreadthFirstIterator
 import scala.collection.JavaConversions._
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.{HashMap, ListBuffer, Map, Queue}
 
 //import org.jgrapht._
 //import org.jgrapht.graph._
@@ -15,31 +18,9 @@ import scala.collection.mutable.ListBuffer
 //import java.io._
 //import java.net._
 //import java.util._
+import Protocol._
 
-
-trait GraphD extends Protocol {
-//  type Point = Point2D.Float
-
-//  val g = new DefaultDirectedGraph[Float, DefaultEdge](classOf[DefaultEdge])
-
-  val g: SimpleWeightedGraph[Point, DefaultWeightedEdge] =
-    new SimpleWeightedGraph[Point, DefaultWeightedEdge](classOf[DefaultWeightedEdge])
-
-  val pa = Point(1f,2f)
-  val pb = Point(3f,4f)
-  val pc = Point(5f,6f)
-  pa.distance(pb)
-
-  // add the vertices
-  g.addVertex(pa)
-  g.addVertex(pb)
-  g.addVertex(pc)
-
-  // add edges to create linking structure
-  g.addEdge(pc, pb)
-  g.addEdge(pa, pc)
-  g.addEdge(pa, pb)
-  g.addEdge(pb, pa)
+trait GraphD {
 
   def coordinatesToGraph(coordinates: List[List[Segment]]): SimpleWeightedGraph[Point, DefaultWeightedEdge] = {
     val graph = new SimpleWeightedGraph[Point, DefaultWeightedEdge](classOf[DefaultWeightedEdge])
@@ -58,68 +39,127 @@ trait GraphD extends Protocol {
         }
       }
     }
-
     graph
   }
-  def graphToCoordinates(graph: SimpleWeightedGraph[Point, DefaultWeightedEdge]): List[List[Segment]] = {
+
+  def graphToCoordinates(graph: SimpleWeightedGraph[Point, DefaultWeightedEdge]) = {
     val subVertices = new ConnectivityInspector(graph).connectedSets
-    val subGraphs = subVertices.iterator.toList map { case vertSet: java.util.Set[Point] => new AsSubgraph[Point, DefaultWeightedEdge](graph, vertSet) }
-
-//    for (subGraph: Graph[Point, DefaultWeightedEdge]  <- subGraphs)
-    subGraphs flatMap { subGraph: Graph[Point, DefaultWeightedEdge] =>
-      val points = subGraph.vertexSet.toList
-      val pathCaps = points.filter{
-        point =>
-          val edges = subGraph.edgesOf(point)
-          edges.size == 1
+    val subGraphs = subVertices.iterator.toList map {
+      case vertSet: java.util.Set[Point] => new AsSubgraph[Point, DefaultWeightedEdge](graph, vertSet)
+    }
+    subGraphs map { subGraph: Graph[Point, DefaultWeightedEdge] =>
+      val edges = subGraph.edgeSet
+      val segments = new ListBuffer[Segment]
+      for (edge: DefaultWeightedEdge <- edges.toList) {
+        (subGraph.getEdgeSource(edge), subGraph.getEdgeTarget(edge)) match {
+          case (p1, p2) =>
+            segments.append(Segment(p1, 0))
+            segments.append(Segment(p2, 1))
+        }
       }
-      val start = pathCaps.headOption.getOrElse(points.head)
 
-      val bfIterator = new BreadthFirstIterator(subGraph, start)
+      segments.toList
+    }
+  }
 
-      val buffer = new ListBuffer[(Point, Point)]
-      while(bfIterator.hasNext()) {
-        val node = bfIterator.next()
-        val parent = bfIterator.getParent(node)
-        buffer.append((node, parent))
-      }
-      println(s"$buffer")
-      List()
+  def graph2coordinates(graph: SimpleWeightedGraph[Point, DefaultWeightedEdge]) = {
+    val subVertices = new ConnectivityInspector(graph).connectedSets
+    val subGraphs = subVertices.iterator.toList map {
+      case vertSet: java.util.Set[Point] => new AsSubgraph[Point, DefaultWeightedEdge](graph, vertSet)
     }
 
+    subGraphs flatMap { subGraph: Graph[Point, DefaultWeightedEdge] =>
+      val points = subGraph.vertexSet.toList
 
-    List.empty
+      val bfIterator = new BreadthFirstIterator(subGraph, points.head)
+      val vertexes = graph.vertexSet.toList
+
+      val map: Map[Point, Point] = new HashMap()
+      while(bfIterator.hasNext()) {
+        val node   = bfIterator.next()
+        val parent = bfIterator.getParent(node)
+        map.put(node, parent)
+      }
+      val verts = subGraph.vertexSet.toList
+      val coords = (verts map { vert =>
+        (vert, bfIterator.getDepth(vert))
+      }).sortWith({(p1, p2) =>
+        (p1, p2) match {
+          case ((_, dp1), (_, dp2)) => dp1 > dp2
+        }
+      })
+
+      val visited  = new ListBuffer[Point]
+      val segments = new ListBuffer[List[Segment]]
+      for ((point, _) <- coords) {
+        var start = true
+        val queue = new Queue[Segment]
+        var parent: Point = point
+        if(parent != null && !visited.contains(parent)) {
+          while (parent != null && !visited.contains(parent)) {
+            if (start) {
+              queue.enqueue(Segment(parent, 0))
+              visited.append(parent)
+              start = false
+            } else {
+              queue.enqueue(Segment(parent, 1))
+              visited.append(parent)
+            }
+            parent = map(parent)
+          }
+          queue.enqueue(Segment(parent, 1))
+          segments.append(queue.toList)
+        }
+      }
+      segments.toList
+    }
   }
 
 
-  def joint(ls: List[(Point, Point)], close: Point): List[List[Segment]] = ls match {
-    case (a1, null) :: (a2, b2) :: Nil              =>
-      List(Segment(a1, 0) :: Segment(a2, 1) :: Nil)
 
-    case (a1, null) :: (a2, b2) :: tail if a1 == b2 =>
-      val remaining: List[List[Segment]] = joint(tail, close)
-      val here: List[Segment] = Segment(a1, 0) :: Segment(a2, 1) :: remaining.head
-      here :: remaining.tail
 
-    case (a1, b1)   :: (a2, b2) :: tail if a1 == b2 =>
-      val remaining: List[List[Segment]] = joint(tail, close)
-      val here: List[Segment] = Segment(a1, 1) :: Segment(a2, 1) :: remaining.head
-      here :: remaining.tail
 
-    case (a1, b1) :: (a2, b2) :: tail               =>
-      val remaining: List[List[Segment]] = joint(tail, a2)
-      val here: List[Segment] =  Segment(a2, 0) :: remaining.head
-      List(Segment(a1, 1)) :: (here :: remaining.tail)
 
-    case (a, b) :: Nil                =>
-      List(Segment(a, 1) :: Segment(b, 1) :: Segment(close, 1) :: Nil)
 
+
+
+
+  def joint(ls: List[(Point, Point)]): List[List[Segment]] = {
+    val a = ls.head
+    val b = ls.tail.head
+    ls match {
+      case (a1, null) :: (a2, parent) :: Nil if a1 == parent =>
+        List(Segment(a1, 0) :: Segment(a2, 1) :: Nil)
+      case (a1, _) :: (a2, parent) :: Nil if a1 == parent    =>
+        List(Segment(a1, 1) :: Segment(a2, 1) :: Nil)
+      case (a1, _) :: (a2, parent) :: Nil if a1 != parent    =>
+        List(Segment(a1, 1)) :: List(Segment(a2, 1) :: Nil)
+
+      case (a1, null) :: (a2, parent) :: tail if a1 == parent =>
+        val remaining = joint((a2, parent) :: tail)
+        val here      = Segment(a1, 0) :: Segment(a2, 1) :: remaining.head
+        here :: remaining.tail
+      case (a1, null) :: (a2, parent) :: tail if a1 != parent =>
+        val remaining = joint((a2, null) :: tail) //modify p2 to be parentless
+        val here      = List(Segment(a1, 0))
+        here :: remaining
+
+      case (a1, _) :: (a2, parent) :: tail if a1 == parent =>
+        val remaining = joint((a2, parent) :: tail)
+        val here      = Segment(a1, 1) :: Segment(a2, 1) :: remaining.head
+        here :: remaining.tail
+      case (a1, _) :: (a2, parent) :: tail if a1 != parent =>
+        val remaining = joint((a2, null) :: tail)
+        val here      = List(Segment(a1, 1))
+        here :: remaining
+    }
   }
+
+
+
+
 
   import java.io.StringWriter
-// use helper classes to define how vertices should be rendered,// use helper classes to define how vertices should be rendered,
-
-  // adhering to the DOT language restrictions
 
 
 

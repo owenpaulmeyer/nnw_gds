@@ -10,9 +10,9 @@ import org.apache.batik.parser.{AWTPathProducer, PathParser}
 import org.apache.batik.svggen.SVGGraphics2D
 import org.w3c.dom
 import org.w3c.dom.{Node, NodeList}
+import Protocol._
 
-
-object SVGParser extends GraphD with Protocol {
+object SVGParser extends GraphD {
   def readFile(filePath: String): dom.Document = {
     val factory: DocumentBuilderFactory = DocumentBuilderFactory.newInstance
     val builder: DocumentBuilder = factory.newDocumentBuilder
@@ -71,6 +71,7 @@ object SVGParser extends GraphD with Protocol {
           case Segment(Point(a, b), SEG_CLOSE)  => pathProducer.closePath()
           case Segment(Point(a, b), SEG_MOVETO) => pathProducer.movetoAbs(a, b)
           case Segment(Point(a, b), SEG_LINETO) => pathProducer.linetoAbs(a, b)
+          case Segment(null, _) =>
           case _ => throw new RuntimeException("unexpected Segment at 'produceSegment'")
         }
       }

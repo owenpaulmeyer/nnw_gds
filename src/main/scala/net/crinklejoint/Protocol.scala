@@ -14,3 +14,5 @@ trait Protocol {
   val SEG_LINETO = 1
   val SEG_CLOSE  = 4
 }
+
+object Protocol extends Protocol
