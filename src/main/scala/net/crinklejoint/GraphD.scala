@@ -1,27 +1,17 @@
 package net.crinklejoint
 
 
-import java.util.Comparator
-import net.crinklejoint
+import java.io.StringWriter
+import net.crinklejoint.Protocol._
 import org.jgrapht.Graph
 import org.jgrapht.alg.connectivity.ConnectivityInspector
-import org.jgrapht.event._
 import org.jgrapht.graph.{DefaultWeightedEdge, _}
 import org.jgrapht.io.{ComponentNameProvider, DOTExporter}
 import org.jgrapht.traverse.BreadthFirstIterator
 import scala.collection.JavaConversions._
 import scala.collection.mutable.{HashMap, ListBuffer, Map, Queue}
 
-//import org.jgrapht._
-//import org.jgrapht.graph._
-//import org.jgrapht.traverse._
-//import java.io._
-//import java.net._
-//import java.util._
-import Protocol._
-
 trait GraphD {
-
   def coordinatesToGraph(coordinates: List[List[Segment]]): SimpleWeightedGraph[Point, DefaultWeightedEdge] = {
     val graph = new SimpleWeightedGraph[Point, DefaultWeightedEdge](classOf[DefaultWeightedEdge])
     for (path <- coordinates) {
@@ -57,7 +47,6 @@ trait GraphD {
             segments.append(Segment(p2, 1))
         }
       }
-
       segments.toList
     }
   }
@@ -115,54 +104,6 @@ trait GraphD {
     }
   }
 
-
-
-
-
-
-
-
-
-
-  def joint(ls: List[(Point, Point)]): List[List[Segment]] = {
-    val a = ls.head
-    val b = ls.tail.head
-    ls match {
-      case (a1, null) :: (a2, parent) :: Nil if a1 == parent =>
-        List(Segment(a1, 0) :: Segment(a2, 1) :: Nil)
-      case (a1, _) :: (a2, parent) :: Nil if a1 == parent    =>
-        List(Segment(a1, 1) :: Segment(a2, 1) :: Nil)
-      case (a1, _) :: (a2, parent) :: Nil if a1 != parent    =>
-        List(Segment(a1, 1)) :: List(Segment(a2, 1) :: Nil)
-
-      case (a1, null) :: (a2, parent) :: tail if a1 == parent =>
-        val remaining = joint((a2, parent) :: tail)
-        val here      = Segment(a1, 0) :: Segment(a2, 1) :: remaining.head
-        here :: remaining.tail
-      case (a1, null) :: (a2, parent) :: tail if a1 != parent =>
-        val remaining = joint((a2, null) :: tail) //modify p2 to be parentless
-        val here      = List(Segment(a1, 0))
-        here :: remaining
-
-      case (a1, _) :: (a2, parent) :: tail if a1 == parent =>
-        val remaining = joint((a2, parent) :: tail)
-        val here      = Segment(a1, 1) :: Segment(a2, 1) :: remaining.head
-        here :: remaining.tail
-      case (a1, _) :: (a2, parent) :: tail if a1 != parent =>
-        val remaining = joint((a2, null) :: tail)
-        val here      = List(Segment(a1, 1))
-        here :: remaining
-    }
-  }
-
-
-
-
-
-  import java.io.StringWriter
-
-
-
   def export(hrefGraph: Graph[Point, DefaultWeightedEdge]) {
     val vertexIdProvider = new ComponentNameProvider[Point] {
       def getName(point: Point): String = point.toString
@@ -186,8 +127,5 @@ trait GraphD {
     exporter.exportGraph(hrefGraph, writer)
     println(writer.toString)
   }
-
-
-
 }
 object GraphD extends GraphD
